@@ -18,7 +18,7 @@ link_2 = [thetas(2) -0.2365 0.4323  0       ];
 link_3 = [thetas(3) 0       0       pi/2    ];
 link_4 = [thetas(4) 0.4318  0       -pi/2   ];
 link_5 = [thetas(5) 0       0       pi/2    ];
-link_6 = [thetas(6) 0.2     0       0       ];
+link_6 = [thetas(6) 0.20    0       0       ];
 
 DH = [link_1; link_2; link_3; link_4; link_5; link_6];
 
@@ -44,10 +44,10 @@ for i = 1:size(q, 1)
 end
 
 % plot end-effector trajectory and robot motion to verify fwd kinematics function
-figure
-plot3(o(:,1),o(:,2),o(:,3),'r');
-hold on;
-plot(myrobot, q);
+% figure
+% plot3(o(:,1),o(:,2),o(:,3),'r');
+% hold on;
+% plot(myrobot, q);
 
 %% calculate inverse kinematics
 
