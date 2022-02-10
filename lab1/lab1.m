@@ -8,7 +8,7 @@ close all;
 clearvars; 
 
 %% set up DH Matrix for the PUMA560
-% in order of θi di ai α
+% in order of theta_i, d_i, a_i, alpha_i
 
 % syms theta_1 theta_2 theta_3 theta_4 theta_5 theta_6
 thetas = zeros(6); % initialize all thetas to zero
@@ -22,10 +22,11 @@ link_6 = [thetas(6) 0.20    0       0       ];
 
 DH = [link_1; link_2; link_3; link_4; link_5; link_6];
 
-%% create the PUMA560 robot
+%% create the PUMA560 robot model
+
 myrobot = mypuma560(DH);
 
-%% plot a sample trajectory
+% plot a sample trajectory
 theta_1 = linspace(0, pi, 200);
 theta_2 = linspace(0, pi/2, 200);
 theta_3 = linspace(0, pi, 200);
@@ -38,9 +39,11 @@ q = [theta_1; theta_2; theta_3; theta_4; theta_5; theta_6]';
 % plot(myrobot, q);
 
 %% calculate the forward kinematics
+
 o = zeros(size(q,1), 3);
 for i = 1:size(q, 1)
-    o(i, :) = forward(q(i, :), myrobot).t'; % translation vector
+    H_0_6   = forward(q(i, :), myrobot); % end-effector pose relative to base
+    o(i, :) = H_0_6.t';                  % translation vector
 end
 
 % plot end-effector trajectory and robot motion to verify fwd kinematics function
@@ -51,7 +54,8 @@ end
 
 %% calculate inverse kinematics
 
-H = [cos(pi/4) -sin(pi/4) 0 0.20; sin(pi/4) cos(pi/4) 0 0.23; 0 0 1 0.15; 0 0 0 1];
-q = inverse(H, myrobot)
-
-
+H = [cos(pi/4) -sin(pi/4) 0  0.20; 
+     sin(pi/4)  cos(pi/4) 0  0.23; 
+     0          0         1  0.15; 
+     0          0         0  1];
+q = inverse(H, myrobot);
