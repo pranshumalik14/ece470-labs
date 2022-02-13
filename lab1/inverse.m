@@ -45,7 +45,7 @@ H_0_3 = forward(q', myrobot);           % joint 3 pose relative to base
 R_3_6 = H_0_3(1:3, 1:3)' * H(1:3, 1:3); % rotation from frame 3 to frame 6
 
 % wrist angles
-theta_4 = atan2(R_3_6(2,3), R_3_6(1,2));
+theta_4 = atan2(R_3_6(2,3), R_3_6(1,3));
 theta_5 = atan2(real(sqrt(1- R_3_6(3,3)^2)), R_3_6(3,3));
 theta_6 = atan2(R_3_6(3,2), -R_3_6(3,1));
 

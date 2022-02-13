@@ -35,23 +35,19 @@ theta_5 = linspace(-pi/3, pi/3, 200)';
 theta_6 = linspace(0, 2*pi, 200)';
 q = [theta_1 theta_2 theta_3 theta_4 theta_5 theta_6];
 
-% figure
-% plot(myrobot, q);
-
 %% calculate the forward kinematics
 
 o = zeros(size(q,1), 3);
-for i = 1:size(q, 1)
-    % q is 200 x 6, but forward takes in 6 x 1, so must transpose before     
+for i = 1:size(q, 1)  
     H_0_6   = forward(q(i, :)', myrobot); % end-effector pose relative to base
     o(i, :) = H_0_6(1:3, 4)';             % translation vector
 end
 
 % plot end-effector trajectory and robot motion to verify fwd kinematics function
-% figure
-% plot3(o(:,1),o(:,2),o(:,3),'r');
-% hold on;
-% plot(myrobot, q);
+figure
+plot3(o(:,1),o(:,2),o(:,3),'r');
+hold on;
+plot(myrobot, q);
 
 %% calculate inverse kinematics
 
