@@ -41,8 +41,8 @@ q = [theta_1 theta_2 theta_3]; % joint values to reach desired wrist center
 % spherical wrist orientation: theta_4, theta_5, theta_6 (ZYZ Euler angles)
 % we first compute the initial wrist orientation due to previous joint values
 % R_3_6 = (R_0_3)^T * Rd
-H_0_3 = forward(q, myrobot);    % joint 3 pose relative to base
-R_3_6 = H_0_3.R' * H(1:3, 1:3); % rotation from frame 3 to frame 6
+H_0_3 = forward(q', myrobot);           % joint 3 pose relative to base
+R_3_6 = H_0_3(1:3, 1:3)' * H(1:3, 1:3); % rotation from frame 3 to frame 6
 
 % wrist angles
 theta_4 = atan2(R_3_6(2,3), R_3_6(1,2));
