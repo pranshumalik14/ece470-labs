@@ -28,7 +28,7 @@ ik_test = inverse_kuka(fk_test, kuka)
 
 %% part 4.3: calibrate DH table or robot model
 
-% minimize calibration error
+% minimize calibration error (unconstrained optimization)
 optdelta = fminunc(@deltajoint, [0 0])
 
 % redefine robot using updated DH

@@ -14,6 +14,6 @@ link_5 = [thetas(5)  0                 0                  pi/2 ];
 link_6 = [thetas(6)  0.16144+delta(1) -0.29633+delta(2)   0    ];
 DH     = [link_1; link_2; link_3; link_4; link_5; link_6];
 
-kuka = mykuka(DH)
+kuka = mykuka(DH);
 
 end
