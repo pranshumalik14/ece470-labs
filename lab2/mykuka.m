@@ -1,5 +1,5 @@
 % defines a PUMA560 robot given its DH parameters matrix (theta, d, a, alpha)
-function myrobot = mypuma560(DH)
+function myrobot = mykuka(DH)
 
 % the DH matrix should have at least one entry
 assert(size(DH,1)  > 1);

@@ -1,47 +1,51 @@
 % returns the joint values to make the end-effector attain the pose given in the 
 % input homogeneous transformation matrix
-function q = inverse(H, myrobot)
+function q = inverse_kuka(H, mykuka)
+
+% get robot params
+d = mykuka.d;
+a = mykuka.a;
 
 % determine desrired wrist center postion (xc, yc, zc)
-d6 = myrobot.d(6);
 Rd = H(1:3, 1:3);
 od = H(1:3,4);
-oc = od - Rd*[0;0;d6];
+oc = od - Rd*[a(6); 0; d(6)];
 
 xc = oc(1);
 yc = oc(2);
 zc = oc(3);
 
 % compute r (and account for offset)
-d2 = myrobot.d(2);
-r  = real(sqrt(xc^2 + yc^2 - d2^2));
+r  = real(sqrt(xc^2 + yc^2)) - a(1);
+s  = zc - d(1); 
 
 % theta_1
-beta    = atan2(yc, xc);
-gamma   = atan2(-d2, r);
-theta_1 = beta - gamma;
+theta_1    = atan2(yc, xc);
 
 % theta_3
-d1 = myrobot.d(1);
-d4 = myrobot.d(4);
-a2 = myrobot.a(2);
-
-L_sqrd = r^2 + (zc-d1)^2;
-
-% let D = sin(theta_3); here we choose the elbow-up configuration
-D       = (L_sqrd - a2^2 - d4^2)/(2*a2*d4);
-theta_3 = atan2(D, real(sqrt(1-D^2)));
+h       = real(     sqrt(d(4)^2 + a(3)^2)       );
+g       = real(     sqrt( r^2 + (zc - d(1))^2)  );
+D       = (h^2 - a(2)^2 - g^2   )/( -2* a(2) * g);
+alpha   = atan2( real(sqrt(1-D^2))  , D      );
 
 % theta_2
-d1      = myrobot.d(1);
-theta_2 = atan2(zc-d1, r) - atan2(-d4*cos(theta_3), a2+d4*sin(theta_3));
+beta    = atan2((zc - d(1)), r);
+theta_2 = beta + alpha;
 
+% theta_3
+D_dash = (a(2)^2 - g^2 - h^2)/(-2*h*g);
+gamma = atan2(real(sqrt(1 - D_dash^2)), D_dash);
+
+psi = atan2(a(3), d(4));
+theta_3 = pi/2 - alpha - gamma - psi;
+
+% concat q
 q = [theta_1 theta_2 theta_3]; % joint values to reach desired wrist center
 
 % spherical wrist orientation: theta_4, theta_5, theta_6 (ZYZ Euler angles)
 % we first compute the initial wrist orientation due to previous joint values
 % R_3_6 = (R_0_3)^T * Rd
-H_0_3 = forward(q', myrobot);           % joint 3 pose relative to base
+H_0_3 = forward_kuka(q', mykuka);       % joint 3 pose relative to base
 R_3_6 = H_0_3(1:3, 1:3)' * H(1:3, 1:3); % rotation from frame 3 to frame 6
 
 % wrist angles
