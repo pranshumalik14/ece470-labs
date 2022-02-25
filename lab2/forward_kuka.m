@@ -1,25 +1,22 @@
 % returns the final homogeneous transformation matrix over the sequence of transformations
-% parametrized by the jointvals row-vector
-function H = forward_kuka(joint, myrobot)
-%     H = myrobot.A(1:size(jointvals, 1), jointvals);
-%     H = H.T;
-%extract columns d, a, alpha from DH table
-    joint = joint';
-    d = myrobot.d;
-    a = myrobot.a;
-    alpha = myrobot.alpha;
+% parametrized by the theta row-vector
+function H = forward_kuka(theta, myrobot)
 
-    %generate transformation matrix H of each frame seperately and multiply
-    %them together
-    H = eye(4,4);
-    for i = 1:size(joint, 2)
-        THETA = joint(i);
-        ALPHA = alpha(i);
-        %this equation is given in the lecture
-        h = [cos(THETA) -sin(THETA)*cos(ALPHA) sin(THETA)*sin(ALPHA) a(i)*cos(THETA);
-            sin(THETA) cos(THETA)*cos(ALPHA) -cos(THETA)*sin(ALPHA) a(i)*sin(THETA);
-            0 sin(ALPHA) cos(ALPHA) d(i);
-            0 0 0 1];
-        H = H * h;
-    end
+H = myrobot.A(1:size(theta, 1), theta);
+H = H.T;
+
+%% alternative:
+% % get robot parameters
+% d     = myrobot.d;
+% a     = myrobot.a;
+% alpha = myrobot.alpha;
+% 
+% % theta should have at least one entry
+% assert(size(theta,1)  > 1);
+% H = trotz(theta(1)) * transl(0,0,d(1)) * transl(a(1), 0, 0) * trotx(alpha(1));
+% 
+% for i = 2:size(theta, 1)
+%     H = H * (trotz(theta(i))*transl(0,0,d(i))*transl(a(i), 0, 0)*trotx(alpha(i)));
+% end
+
 end
