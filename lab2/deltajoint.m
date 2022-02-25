@@ -15,6 +15,6 @@ H2 = forward_kuka(Q2, kuka);
 H3 = forward_kuka(Q3, kuka);
 
 % current calibration error
-err = norm(H1(1:3,4)-X1) + norm(H2(1:3,4)-X2) + norm(H3(1:3,4)-X3)
+err = norm(H1(1:3,4)-X1) + norm(H2(1:3,4)-X2) + norm(H3(1:3,4)-X3);
 
 end
