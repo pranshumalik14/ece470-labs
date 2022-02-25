@@ -4,8 +4,7 @@ function H = forward_kuka(joint, myrobot)
 %     H = myrobot.A(1:size(jointvals, 1), jointvals);
 %     H = H.T;
 %extract columns d, a, alpha from DH table
-    joint = joint'
-    size(joint)
+    joint = joint';
     d = myrobot.d;
     a = myrobot.a;
     alpha = myrobot.alpha;
@@ -13,7 +12,7 @@ function H = forward_kuka(joint, myrobot)
     %generate transformation matrix H of each frame seperately and multiply
     %them together
     H = eye(4,4);
-    for i = 1:size(joint, 1)
+    for i = 1:size(joint, 2)
         THETA = joint(i);
         ALPHA = alpha(i);
         %this equation is given in the lecture
