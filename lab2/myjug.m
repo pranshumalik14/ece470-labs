@@ -1,5 +1,7 @@
+% draw a shape on paper
 function q = myjug(R, robot)
 
+%define workspace coordinates
 data  = xlsread('jug.xlsx');
 xdata = 0.001 * (550 + 10*data(:,1));
 ydata = 0.001 * 10 * data(:,2);
@@ -8,10 +10,12 @@ zdata = 0.001 * -ones(length(data),1);
 X_workspace = [xdata ydata zdata]';
 X_baseframe = zeros(3, length(data));
 
+% convert to base coordinates
 for i = 1:length(data)
     X_baseframe(:,i) = FrameTransformation(X_workspace(:,i));
 end
 
+% inverse kinematic
 q = zeros(length(data), 6);
 
 for i = 1:length(data)
