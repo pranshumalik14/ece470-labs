@@ -1,9 +1,9 @@
 function pBaseFrame = FrameTransformation(pWorkspace)
 
 %	if you recalibrate the robot, YOU MUST UPDATE deltajoint.m  too ! 
-    X1=[356.84  -293.57  28.71]';
-    X2=[738.32    15.61  30.60]';
-    X3=[371.61   248.00  30.50]';    
+    X1 = [0.68529  -0.00956  0.08351]';
+    X2 = [0.49828  -0.17624  0.08348]';
+    X3 = [0.49828   0.10787  0.08353]';    
 
 %   finding plane coordinates: a*x + b*y + c*z = 1
     M = [X1'; X2'; X3'];

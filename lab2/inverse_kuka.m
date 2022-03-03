@@ -26,7 +26,7 @@ theta_1    = atan2(yc, xc);
 h       = real(     sqrt(d(4)^2 + a(3)^2)       );
 g       = real(     sqrt( r^2 + (zc - d(1))^2)  );
 D       = (h^2 - a(2)^2 - g^2   )/( -2* a(2) * g);
-alpha   = atan2( real(sqrt(1-D^2))  , D      );
+alpha   = atan2( real(sqrt(1-D^2))  , D         );
 
 % theta_2
 beta    = atan2((zc - d(1)), r);
