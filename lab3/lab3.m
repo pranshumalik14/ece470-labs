@@ -32,6 +32,7 @@ Hdes        = eul2tr([0 pi -pi/2]);
 Hdes(1:3,4) = [3; -1; 2;]/4;
 qdes        = inverse(Hdes, myrobot);
 tau = att(qs, qdes, myrobot)
+
 %%
 qref = motionplan(qs, qdes, 0, 10, myrobot,[], 1e-2);
 
