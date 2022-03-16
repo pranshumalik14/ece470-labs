@@ -39,3 +39,8 @@ qref = motionplan(qs, qdes, 0, 10, myrobot,[], 1e-2);
 t = linspace(0,10,300);
 q = ppval(qref,t)';
 plot(myrobot, q)
+
+%% Obstacles
+setupobstacle
+q3 = 0.9*qs + 0.1*qdes;
+tau = rep(q3, myrobot, obs{1})
