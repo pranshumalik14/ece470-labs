@@ -3,11 +3,12 @@
 function tau = att(q, qdes, myrobot)
 
 % compute the distance between the current and desired joint positions
-Hqi    = zeros(4, 4, size(q,2)); %+1
+Hqi    = zeros(4, 4, size(q,2)+1);
 oqdiff = zeros(3, size(q,2));
 
 Hqi(:,:,1) = trotz(0); % start from robot base frame: default world frame
 for i = 1:size(q,2)
+    display(i)
     Hqi(:,:,i+1) = forward(q(1:i)', myrobot);
     Hqdesi       = forward(qdes(1:i)', myrobot);
     oqdiff(:,i)  = Hqi(1:3,4,i+1) - Hqdesi(1:3,4);
