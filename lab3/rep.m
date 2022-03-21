@@ -1,10 +1,8 @@
 function tau = rep(q, myrobot, obs)
-obs.R = obs.R/100;
-obs.rho0 = obs.rho0/100;
-obs.c(1) = obs.c(1)/100;
-obs.c(2) = obs.c(2)/100;
+% obs.R = obs.R/100;
+% obs.rho0 = obs.rho0/100;
+% obs.c = obs.c/100;
 
-% 
 Frep = zeros(3, size(q,2));
 
 % compute the distance between the current and desired joint positions
@@ -23,33 +21,35 @@ for i = 1:size(q,2)
     
     if obs.type == 'cyl'
         
-        norm_dist = norm(obs.c - Oi(1:2));
+        norm_dist = norm(obs.c(1:2) - Oi(1:2));
     
         if norm_dist > obs.R
             dist_x = (Oi(1) - obs.c(1))*(1 - obs.R/norm_dist);
             dist_y = (Oi(2) - obs.c(2))*(1 - obs.R/norm_dist);
-            dist_from_obst = [dist_x; dist_y; 0]
+            dist_from_obst = [dist_x; dist_y; 0];
         end
     elseif obs.type == 'sph'
         norm_dist = norm(Oi - obs.c);
         if norm_dist > obs.R
-            dist_from_obst = (Oi - obs.c) * ( (-1*obs.R)/(norm_dist) + 1 );
+             dist_from_obst = (Oi - obs.c) * (1 - obs.R/norm_dist);
+%               dist_from_obst = Oi - (obs.R * (Oi - obs.c)/norm_dist + obs.c);
         end
     end
 
-    norm_dist_from_obst = norm(dist_from_obst)
+    norm_dist_from_obst = norm(dist_from_obst);
+    grad_rho = dist_from_obst/norm_dist_from_obst;
 
-    eta = 0.1;
-    force = 0.0;
-    
+    eta = 1;
+    force = [0;0;0];
+
     if norm_dist_from_obst < obs.rho0
-        force = (1/(norm_dist_from_obst^3) - 1/(obs.rho0))/(norm_dist_from_obst^3);
+%         force = eta*(1/(norm_dist_from_obst^3) - 1/(obs.rho0))*dist_from_obst/(norm_dist_from_obst^3);
+          force = eta * ( 1/(norm_dist_from_obst) - 1/(obs.rho0) ) * (1/(norm_dist_from_obst^2)) * grad_rho;
     end
 
     Frep(:, i) = force;
 end
-
-Frep
+% Frep = [0 0 0 -106.4269 -106.4269 -106.4269; 0 0 0 -3.694 -3.694 -3.694; 0 0 0 0 0 0]
 % compute torque
 tau = zeros(6,1);
 

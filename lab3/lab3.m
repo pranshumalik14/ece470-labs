@@ -38,9 +38,25 @@ qref = motionplan(qs, qdes, 0, 10, myrobot,[], 1e-2);
 %% visualize results
 t = linspace(0,10,300);
 q = ppval(qref,t)';
-plot(myrobot, q)
+% plot(myrobot, q)
 
 %% Obstacles
+%test cyl
 setupobstacle
 q3 = 0.9*qs + 0.1*qdes;
 tau = rep(q3, myrobot, obs{1})
+% note our lab is in [m] and not [cm]
+%% test sph
+q = [pi/2 pi 1.2*pi 0 0 0];
+tau = rep(q,myrobot,obs{6})
+
+%% 
+hold on
+axis([-1 1 -1 1 0 2])
+view(-0.32, 0.5)
+plotobstacle(obs);
+qref = motionplan(qs, qdes, 0, 10, myrobot, obs, 0.01);
+% t = linspace(0, 10, 300);
+q = ppval(qref, t)';
+plot(myrobot, q);
+hold off;
