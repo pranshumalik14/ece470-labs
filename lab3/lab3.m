@@ -33,31 +33,44 @@ Hdes(1:3,4) = [3; -1; 2;]/4;
 qdes        = inverse(Hdes, myrobot);
 tau = att(qs, qdes, myrobot)
 
-%%
+%% motion planning without obstacles
+
 qref = motionplan(qs, qdes, 0, 10, myrobot,[], 1e-2);
 
-%% visualize results
-t = linspace(0,10,300);
-q = ppval(qref,t)';
-% plot(myrobot, q)
+% visualize results
+figure;
+t = linspace(0, 10, 300);
+q = ppval(qref, t)';
+plot(myrobot, q)
 
-%% Obstacles
-%test cyl
-setupobstacle
-q3 = 0.9*qs + 0.1*qdes;
-tau = rep(q3, myrobot, obs{1})
-% note our lab is in [m] and not [cm]
-%% test sph
-q = [pi/2 pi 1.2*pi 0 0 0];
-tau = rep(q,myrobot,obs{6})
+%% setup obstacles in environment
+% note: we have modified setupobstacle to be in units of [m] so that
+% there are no discrepancies when plotting obstacles later on, and more
+% distributed changes throughout the lab code for unit conversion are also
+% mitigated this way
 
-%% 
-hold on
+setupobstacle;
+
+%% torque due to cylindrical obstacle in environment
+% note: our lab is in [m] and not [cm]
+
+qtst = 0.9*qs + 0.1*qdes;
+tau  = rep(qtst, myrobot, obs{1})
+
+%% torque due to spherical obstacle in environment
+
+qtst = [pi/2 pi 1.2*pi 0 0 0];
+tau  = rep(qtst, myrobot, obs{6})
+
+%% motion planning with obstcales in environment
+
+figure;
+hold on;
 axis([-1 1 -1 1 0 2])
 view(-0.32, 0.5)
 plotobstacle(obs);
 qref = motionplan(qs, qdes, 0, 10, myrobot, obs, 0.01);
-% t = linspace(0, 10, 300);
+t = linspace(0, 10, 300);
 q = ppval(qref, t)';
 plot(myrobot, q);
 hold off;

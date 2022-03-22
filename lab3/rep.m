@@ -1,55 +1,43 @@
+% returns the torque on joints due to the repulsive potential of one obs; note that
+% q and qdes must be row vectors of length equal to number of joints of robot
 function tau = rep(q, myrobot, obs)
-% obs.R = obs.R/100;
-% obs.rho0 = obs.rho0/100;
-% obs.c = obs.c/100;
 
-Frep = zeros(3, size(q,2));
-
-% compute the distance between the current and desired joint positions
-Hqi    = zeros(4, 4, size(q,2)+1); 
+% compute the current joint poses and distance from obstacle surface
+Hqi    = zeros(4, 4, size(q,2)+1);
+d_oipi = zeros(3, size(q,2));
 
 Hqi(:,:,1) = trotz(0); % start from robot base frame: default world frame
 for i = 1:size(q,2)
     Hqi(:,:,i+1) = forward(q(1:i)', myrobot);
+    d_oipi(:,i)  = obs_surf_dist(Hqi(1:3,4,i+1), obs); % dist(oi, pi)
+end
+    
+% nested function to compute vector from obstacle surface to oi
+function diff_oipi = obs_surf_dist(oi, obs)
+    assert(obs.type == "cyl" || obs.type == "sph");
+    
+    if obs.type == "cyl"
+        oi = oi(1:2);
+    end
+    
+    % get closest point on obstacle surface
+    psurf = obs.c + (obs.R/norm(oi-obs.c))*(oi-obs.c);
+    
+    diff_oipi = oi - psurf;
+    if obs.type == "cyl"
+        diff_oipi = [diff_oipi; 0];
+    end
 end
 
+% compute repulsive force
+Frep = zeros(3, size(q,2));
 for i = 1:size(q,2)
-
-    Oi = Hqi(1:3,4,i+1);
-    dist_from_obst = [0;0;0];
-    norm_dist_from_obst = 0;
-    
-    if obs.type == 'cyl'
-        
-        norm_dist = norm(obs.c(1:2) - Oi(1:2));
-    
-        if norm_dist > obs.R
-            dist_x = (Oi(1) - obs.c(1))*(1 - obs.R/norm_dist);
-            dist_y = (Oi(2) - obs.c(2))*(1 - obs.R/norm_dist);
-            dist_from_obst = [dist_x; dist_y; 0];
-        end
-    elseif obs.type == 'sph'
-        norm_dist = norm(Oi - obs.c);
-        if norm_dist > obs.R
-             dist_from_obst = (Oi - obs.c) * (1 - obs.R/norm_dist);
-%               dist_from_obst = Oi - (obs.R * (Oi - obs.c)/norm_dist + obs.c);
-        end
+    dist_oipi = norm(d_oipi(:,i));
+    if dist_oipi < obs.rho0 % repulsive force only exists till rho0 away
+        Frep(:,i) = ((1/dist_oipi - 1/obs.rho0)/(dist_oipi^3))*d_oipi(:,i);
     end
-
-    norm_dist_from_obst = norm(dist_from_obst);
-    grad_rho = dist_from_obst/norm_dist_from_obst;
-
-    eta = 1;
-    force = [0;0;0];
-
-    if norm_dist_from_obst < obs.rho0
-%         force = eta*(1/(norm_dist_from_obst^3) - 1/(obs.rho0))*dist_from_obst/(norm_dist_from_obst^3);
-          force = eta * ( 1/(norm_dist_from_obst) - 1/(obs.rho0) ) * (1/(norm_dist_from_obst^2)) * grad_rho;
-    end
-
-    Frep(:, i) = force;
 end
-% Frep = [0 0 0 -106.4269 -106.4269 -106.4269; 0 0 0 -3.694 -3.694 -3.694; 0 0 0 0 0 0]
+
 % compute torque
 tau = zeros(6,1);
 
