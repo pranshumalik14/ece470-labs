@@ -14,10 +14,27 @@ end
     
 % nested function to compute vector from obstacle surface to oi
 function diff_oipi = obs_surf_dist(oi, obs)
-    assert(obs.type == "cyl" || obs.type == "sph");
-    
+    assert(obs.type == "cyl" || obs.type == "sph" || obs.type == "pla");
+
+    if obs.type == "pla"
+        if oi(3) < obs.z0
+            diff_oipi = [0; 0; 0];
+        else
+            diff_oipi = [0; 0; oi(3) - obs.z0];
+        end
+        return;
+    end
+
     if obs.type == "cyl"
-        oi = oi(1:2);
+        % special case: directly above cylinder
+        if oi(3) > obs.h && norm(oi(1:2) - obs.c) < obs.R
+            rim_pi    = [obs.c + obs.R*oi(1:2)/norm(oi(1:2)); obs.h];
+            diff_oipi = oi - rim_pi;
+            return;
+        else
+            oiz = oi(3);
+            oi  = oi(1:2); % treat as infinite cylinder
+        end
     end
     
     % get closest point on obstacle surface
@@ -28,9 +45,13 @@ function diff_oipi = obs_surf_dist(oi, obs)
     end
     diff_oipi = oi - psurf;
     
-    diff_oipi = oi - psurf;
     if obs.type == "cyl"
-        diff_oipi = [diff_oipi; 0];
+        if oiz < obs.h
+            diff_oipi = [diff_oipi; 0];
+        else
+            % special case: oi above cylinder, beyond radius
+            diff_oipi = [diff_oipi; oiz - obs.h];
+        end
     end
 end
 
