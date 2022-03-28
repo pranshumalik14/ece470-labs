@@ -66,7 +66,7 @@ hold off;
 %% prelab: motion planning with obstacles (part 2)
 
 setupobstacle;
-qref = motionplan(q1, q2, 0, 10, kuka_forces, obs, 1e-2, 1.0, 5000);
+qref = motionplan(q1, q2, 0, 10, kuka_forces, obs, 1e-2, 3.0, 15000);
 
 % visualize results
 figure;
@@ -86,3 +86,9 @@ p0 = [0.37 -0.44 0.15];
 p1 = [0.37 -0.44 z_grid];
 p2 = [0.75 -0.22 0.225];
 p3 = [0.62 0.35 0.225];
+
+
+%% rrt planning
+
+lb = [0 -pi/2   0    0  0    -pi/2];
+ub = [pi/2 pi/2 2*pi pi 2*pi  pi/2];
