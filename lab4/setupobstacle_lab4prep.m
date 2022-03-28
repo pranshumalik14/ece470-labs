@@ -5,6 +5,6 @@ prepobs{1}.h = 0.3;
 prepobs{1}.type = 'cyl';
 
 prepobs{2}.type = 'pla';
-prepobs{2}.z0 = 0.032;
-prepobs{2}.rho0 = 0.2;
+prepobs{2}.h = 0.032;
+prepobs{2}.rho0 = 0.15;
 

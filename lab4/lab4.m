@@ -35,11 +35,12 @@ DH_forces = [link_1; link_2; link_3; link_4; link_5; link_6];
 kuka        = mykuka(DH);
 kuka_forces = mykuka(DH_forces);
 
-%%
+%% prelab: test repulsion torque values
+
 setupobstacle_lab4prep;
 tau = rep([pi/10,pi/12,pi/6,pi/2,pi/2,-pi/6], kuka_forces, prepobs{1})
 
-%% motion planning with obstacles
+%% prelab: motion planning with obstacles (part 1)
 
 p1 = [0.620  0.375 0.050];
 p2 = [0.620 -0.375 0.050];
@@ -57,6 +58,22 @@ hold on;
 axis([-1 1 -1 1 0 1])
 view(-0.32, 0.5)
 plotobstacle(prepobs);
+t = linspace(0, 10, 300);
+q = ppval(qref, t)';
+plot(kuka, q);
+hold off;
+
+%% prelab: motion planning with obstacles (part 2)
+
+setupobstacle;
+qref = motionplan(q1, q2, 0, 10, kuka_forces, obs, 1e-2, 1.0, 5000);
+
+% visualize results
+figure;
+hold on;
+axis([-1 1 -1 1 0 1])
+view(-0.32, 0.5)
+plotobstacle(obs);
 t = linspace(0, 10, 300);
 q = ppval(qref, t)';
 plot(kuka, q);

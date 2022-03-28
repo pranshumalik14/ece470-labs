@@ -1,4 +1,4 @@
-% Units are centimetres
+% Units are meters
 % Obstacle 1: Cylinder
 obs{1}.R = 1/8;
 obs{1}.c = [0.2;0.8];

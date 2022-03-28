@@ -1,4 +1,4 @@
-
+% Units are meters
 % Obstacle 1: plane
 obs{1}.rho0 = 0.15;
 obs{1}.h = 0.032;

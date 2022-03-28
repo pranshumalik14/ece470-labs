@@ -17,10 +17,10 @@ function diff_oipi = obs_surf_dist(oi, obs)
     assert(obs.type == "cyl" || obs.type == "sph" || obs.type == "pla");
 
     if obs.type == "pla"
-        if oi(3) < obs.z0
+        if oi(3) < obs.h
             diff_oipi = [0; 0; 0];
         else
-            diff_oipi = [0; 0; oi(3) - obs.z0];
+            diff_oipi = [0; 0; oi(3) - obs.h];
         end
         return;
     end
