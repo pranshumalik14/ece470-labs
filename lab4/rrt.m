@@ -1,6 +1,6 @@
 % solves the motion planning problem for a manipulator robot using
 % rapidly-exploring random tree (RRT) algorithm with obstacle avoidance
-function q_path = rrt(q_start, q_goal, mykuka, obs, delta_q, n_iter, p, lb, ub, tol)
+function [q_path, q_err, tree] = rrt(q_start, q_goal, mykuka, obs, delta_q, n_iter, p, lb, ub, tol)
 
 % get problem dimensions    
 n = size(mykuka.links, 2);
@@ -32,7 +32,7 @@ for i = 1:n_iter
     
     if all(q_new < lb) || all(q_new > ub)
         continue; % skip this iteration as q_new is outside joint limits
-    else if collision(q_new, obs)
+    elseif collision(q_new, obs)
         continue; % skip this iteration as q_new is in collision
     else
         % add q_new to tree
@@ -48,18 +48,18 @@ end
 % backtrack to find the path (create matrix of jointvals)
 n_curr = tree(end);
 q_path = [n_curr.pos];
-while  n_curr.parent ~= []
+while ~isempty(n_curr.parent)
     n_curr = n_curr.parent;
     q_path = [q_path; n_curr.pos];
 end
 
-% smoothen path and return
-q_path = smoothdata(q_path);
+% smoothen path and return with error
+q_path = [q_path(1, :); smoothdata(q_path(2:end-1, :)); q_path(end, :)];
+q_err  = norm(wrapTo2Pi(q_path(end, 1:5)) - wrapTo2Pi(q_goal(1:5)));
 
-%% helper functions for rrt
-
+% helper functions for rrt
 % checks if links are colliding with obstacles for the given jointvals, q
-function colliding = check_collision(q, obs)
+function colliding = collision(q, obs)
     for obs_idx = 1:size(obs, 2)
         % todo: check
     end
@@ -69,17 +69,15 @@ end
 % returns the nearest neighbor node in tree to q_rand
 % naive implementation: traverse through the entire tree
 function nn_near = nearest(q_rand, tree)
-    q_closest = q_rand;
-    min_dist  = inf;
+    nn_near = tree(1);
+    min_dist  = Inf;
 
     for node_idx = 1:size(tree, 2)
         if norm(tree(node_idx).pos - q_rand) < min_dist
-            min_dist = norm(tree(node_idx).pos - q_rand)
-            q_closest = tree(node_idx).pos
+            min_dist = norm(tree(node_idx).pos - q_rand);
+            nn_near = tree(node_idx);
         end
     end
-
-    q_near = q_closest;
 end
 
 end
