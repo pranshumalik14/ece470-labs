@@ -92,4 +92,13 @@ p3 = [0.62 0.35 0.225];
 
 lb = [0 -pi/2   0    0  0    -pi/2];
 ub = [pi/2 pi/2 2*pi pi 2*pi  pi/2];
-[q_path, q_err, tree] = rrt(q1, q2, kuka, obs, 0.3, 10000, 0.5, lb, ub, 1e-2);
+[q_path, q_err, tree] = rrt(q1, q2, kuka, obs, 0.2, 10000, 0.7, lb, ub, 1e-2);
+
+% visualize results
+figure;
+hold on;
+axis([-1 1 -1 1 0 1])
+view(-0.32, 0.5)
+plotobstacle(obs);
+plot(kuka, q_path);
+hold off;

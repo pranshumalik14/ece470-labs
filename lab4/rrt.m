@@ -52,6 +52,7 @@ while ~isempty(n_curr.parent)
     n_curr = n_curr.parent;
     q_path = [q_path; n_curr.pos];
 end
+q_path = flipud(q_path);
 
 % smoothen path and return with error
 q_path = [q_path(1, :); smoothdata(q_path(2:end-1, :)); q_path(end, :)];
