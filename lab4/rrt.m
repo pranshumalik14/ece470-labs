@@ -46,13 +46,17 @@ for i = 1:n_iter
 end
 
 % backtrack to find the path (create matrix of jointvals)
-n_curr = tree(end);
+if norm(wrapTo2Pi(tree(end).pos(1:5)) - wrapTo2Pi(q_goal(1:5))) < tol
+    n_curr = tree(end);
+else
+    n_curr = nearest(q_goal, tree);
+end
+
 q_path = [n_curr.pos];
 while ~isempty(n_curr.parent)
     n_curr = n_curr.parent;
-    q_path = [q_path; n_curr.pos];
+    q_path = [n_curr.pos; q_path];
 end
-q_path = flipud(q_path);
 
 % smoothen path and return with error
 q_path = [q_path(1, :); smoothdata(q_path(2:end-1, :)); q_path(end, :)];
