@@ -32,7 +32,7 @@ for i = 1:n_iter
     
     if all(q_new < lb) || all(q_new > ub)
         continue; % skip this iteration as q_new is outside joint limits
-    elseif collision(q_new, obs)
+    elseif collision(q_new, obs, 0.2)
         continue; % skip this iteration as q_new is in collision
     else
         % add q_new to tree
@@ -64,9 +64,67 @@ q_err  = norm(wrapTo2Pi(q_path(end, 1:5)) - wrapTo2Pi(q_goal(1:5)));
 
 % helper functions for rrt
 % checks if links are colliding with obstacles for the given jointvals, q
-function colliding = collision(q, obs)
+function colliding = collision(q, obs, dr)
+    % compute the current joint poses and distance from obstacle surface
+    Hqi    = zeros(4, 4, size(q,2)+1);
+    
+    Hqi(:,:,1) = trotz(0); % start from robot base frame: default world frame
+    for joint_idx = 1:size(q,2)
+        Hqi(:,:,joint_idx+1) = forward(q(1:joint_idx)', mykuka);
+    end
+
+    % Forward kinematics is done => need to check for collisions now
     for obs_idx = 1:size(obs, 2)
         % todo: check
+        obs_i = obs{obs_idx};
+        sphere_center = obs_i.c;
+        sphere_influence = obs_i.R + dr;
+
+        if obs_i.type == "sph"
+            % compute link i
+            for joint_idx = 1:size(q,2)
+                joint_i = Hqi(:, :, joint_idx);
+                joint_i_1 = Hqi(:, :, joint_idx+1);
+
+                org_joint_i = joint_i(1:3, 4);
+                org_joint_i_1 = joint_i_1(1:3, 4);
+
+                link_i_vec = org_joint_i_1 - org_joint_i;
+                joint2sphe = sphere_center - org_joint_i;
+
+                % dot product
+                dotProduct = dot(joint2sphe, link_i_vec);
+                projection_obs = dotProduct * link_i_vec;
+
+                dist_vector = norm(projection_obs - joint2sphe);
+
+                if dist_vector > sphere_influence
+                    continue;
+                else
+                    colliding = true;
+                    return;
+                end
+            end
+
+        elseif obs_i.type == "cyl"
+            continue;
+        elseif obs_i.type == "pla"
+            obs_i_influence = obs_i.rho0;
+            obs_i_z_val = obs_i.h;
+
+            for joint_idx = 1:size(q,2)
+                joint_i = Hqi(:, :, joint_idx);
+                joint_i_1 = Hqi(:, :, joint_idx+1);
+
+                org_joint_i = joint_i(1:3, 4);
+                org_joint_i_1 = joint_i_1(1:3, 4);
+
+                % CHeck if both points above plane or below
+
+
+            end
+        end
+
     end
     colliding = false; % todo: add logic
 end
