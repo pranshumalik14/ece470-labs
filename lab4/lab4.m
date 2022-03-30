@@ -99,17 +99,15 @@ q2 = inverse(H2, kuka);
 q3 = inverse(H3, kuka);
 
 %% 
-qref = motionplan(q0, q1, 0, 10, kuka_forces, obs, 1e-2, 1.5, 1000);
+qref = motionplan(q0, q1, 0, 10, kuka_forces, obs, 3e-2, 0.2, 1000, 0.03);
 t = linspace(0, 10, 300);
 q1_follow = ppval(qref, t)';
 
-%%
-qref = motionplan(q1_follow(end, :), q2, 10, 20, kuka_forces, obs, 1e-2, 1.5, 1000);
+qref = motionplan(q1_follow(end, :), q2, 10, 20, kuka_forces, obs, 3e-2, 0.5, 1000, 0.01);
 t = linspace(10, 20, 300);
 q2_follow = ppval(qref, t)';
 
-%%
-qref = motionplan(q2_follow(end, :), q3, 20, 30, kuka_forces, obs, 1e-2, 2, 5000);
+qref = motionplan(q2_follow(end, :), q3, 20, 30, kuka_forces, obs, 3e-2, 1, 5000, 0.01);
 t = linspace(20, 30, 300);
 q3_follow = ppval(qref, t)';
 
