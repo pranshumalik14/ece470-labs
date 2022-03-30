@@ -8,9 +8,9 @@
 % prepobs{2}.h = 0.032;
 % prepobs{2}.rho0 = 0.15;
 
-prepobs{1}.R = 0.2;
-prepobs{1}.c = [0.75; 0; 0];
-prepobs{1}.rho0 = 0.5;
+prepobs{1}.R = 0.1;
+prepobs{1}.c = [0.75; 0; 0.4];
+prepobs{1}.rho0 = 0.2;
 prepobs{1}.type = 'sph';
 
 

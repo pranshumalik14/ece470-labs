@@ -32,8 +32,8 @@ for i = 1:n_iter
     
     if all(q_new < lb) || all(q_new > ub)
         continue; % skip this iteration as q_new is outside joint limits
-    elseif collision(q_new, obs, 0.2)
-        continue; % skip this iteration as q_new is in collision
+    elseif collision(q_new, obs)
+        continue % skip this iteration as q_new is in collision
     else
         % add q_new to tree
         tree = [tree struct('pos', q_new, 'parent', nn_node)];
@@ -59,13 +59,14 @@ while ~isempty(n_curr.parent)
 end
 
 % smoothen path and return with error
-q_path = [q_path(1, :); smoothdata(q_path(2:end-1, :)); q_path(end, :)];
+% q_path = [q_path(1, :); smoothdata(q_path(2:end-1, :)); q_path(end, :)];
 q_err  = norm(wrapTo2Pi(q_path(end, 1:5)) - wrapTo2Pi(q_goal(1:5)));
 
 % helper functions for rrt
 % checks if links are colliding with obstacles for the given jointvals, q
-function colliding = collision(q, obs, dr)
+function colliding = collision(q, obs)
     % compute the current joint poses and distance from obstacle surface
+    padding = 0.15;
     Hqi    = zeros(4, 4, size(q,2)+1);
     
     Hqi(:,:,1) = trotz(0); % start from robot base frame: default world frame
@@ -75,12 +76,13 @@ function colliding = collision(q, obs, dr)
 
     % Forward kinematics is done => need to check for collisions now
     for obs_idx = 1:size(obs, 2)
-        % todo: check
+        
         obs_i = obs{obs_idx};
-        sphere_center = obs_i.c;
-        sphere_influence = obs_i.R + dr;
-
+        
+        % If sphere
         if obs_i.type == "sph"
+            sphere_center = obs_i.c;
+            sphere_influence = obs_i.R + padding;
             % compute link i
             for joint_idx = 1:size(q,2)
                 joint_i = Hqi(:, :, joint_idx);
@@ -94,23 +96,24 @@ function colliding = collision(q, obs, dr)
 
                 % dot product
                 dotProduct = dot(joint2sphe, link_i_vec);
-                projection_obs = dotProduct * link_i_vec;
+
+                % multiply by the unit vector in that direction
+                projection_obs = dotProduct * (link_i_vec)/(norm(link_i_vec));
 
                 dist_vector = norm(projection_obs - joint2sphe);
 
-                if dist_vector > sphere_influence
-                    continue;
-                else
+                if dist_vector < sphere_influence
                     colliding = true;
                     return;
                 end
             end
 
         elseif obs_i.type == "cyl"
-            continue;
-        elseif obs_i.type == "pla"
-            obs_i_influence = obs_i.rho0;
-            obs_i_z_val = obs_i.h;
+            cylinder_height = obs_i.h;
+            cylinder_center = obs_i.c;
+            cylinder_radius = obs_i.R;
+            cylinder_influence = padding;
+            cylinder_eff_radius = cylinder_influence + cylinder_radius;
 
             for joint_idx = 1:size(q,2)
                 joint_i = Hqi(:, :, joint_idx);
@@ -119,14 +122,70 @@ function colliding = collision(q, obs, dr)
                 org_joint_i = joint_i(1:3, 4);
                 org_joint_i_1 = joint_i_1(1:3, 4);
 
-                % CHeck if both points above plane or below
+                min_z = min(org_joint_i(3), org_joint_i_1(3));
+                max_z = max(org_joint_i(3), org_joint_i_1(3));
+                
+                % Check if outside region of influence
 
+                if min_z > cylinder_height + cylinder_influence
+                    continue;
+                elseif max_z < cylinder_height - cylinder_influence
+                    continue;
+                else
+                    % in region of influence 
+                    % Should check if 
+                    dist_from_cylinder_i   = norm(org_joint_i - [cylinder_center; org_joint_i(3)]);
+                    dist_from_cylinder_i_1 = norm(org_joint_i - [cylinder_center; org_joint_i_1(3)]);
+                    if dist_from_cylinder_i_1 < cylinder_eff_radius | dist_from_cylinder_i < cylinder_eff_radius 
+                        colliding = true;
+                        return;
+                    end
 
+                    % If here, neither joints are close to the cylinder
+                    % Need to verify if if the link (joint i -> joint i+1)
+                    % contains the cylinder. If so, collision.
+
+                    % Need to find the closest point. 
+
+                end
+            end
+        elseif obs_i.type == "pla"
+            % Assume pla is confined to x-y direction ONLY
+            obs_i_influence = padding;
+            obs_i_z_val = obs_i.h;
+
+            % Region of influence is from obs_z - obs_influence => obs_z +
+            % obs_influence
+
+            for joint_idx = 1:size(q,2)
+                joint_i = Hqi(:, :, joint_idx);
+                joint_i_1 = Hqi(:, :, joint_idx+1);
+
+                org_joint_i = joint_i(1:3, 4);
+                org_joint_i_1 = joint_i_1(1:3, 4);
+
+                min_z = min(org_joint_i(3), org_joint_i_1(3));
+                max_z = max(org_joint_i(3), org_joint_i_1(3));
+
+                % Check if both points above plane or below
+                if max_z < obs_i_z_val - obs_i_influence
+                    % max z value is still under region of influence; no
+                    % collision
+                    continue;
+                elseif min_z > obs_i_z_val + obs_i_influence
+                    % min z value is above region of influence; no
+                    % collision
+                    continue;
+                else
+                    % Any other scenario, links/joints are within region of
+                    % influence 
+                    colliding = true;
+                    return;
+                end
             end
         end
-
     end
-    colliding = false; % todo: add logic
+    colliding = false;
 end
 
 % returns the nearest neighbor node in tree to q_rand

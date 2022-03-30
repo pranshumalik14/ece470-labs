@@ -43,7 +43,9 @@ tau = rep([pi/10,pi/12,pi/6,pi/2,pi/2,-pi/6], kuka_forces, prepobs{1})
 %% prelab: motion planning with obstacles (part 1)
 
 p1 = [0.620  0.375 0.050];
-p2 = [0.620 -0.375 0.050];
+% p2 = [0.620 -0.375 0.050];
+p2 = [0.620 -0.375 0.400]; % change to this point to test spherical
+% obstacle
 R  = [0 0 1; 0 -1 0;1 0 0];
 H1 = [R p1'; zeros(1,3) 1];
 H2 = [R p2'; zeros(1,3) 1];
@@ -60,7 +62,7 @@ view(-0.32, 0.5)
 plotobstacle(prepobs);
 t = linspace(0, 10, 300);
 q = ppval(qref, t)';
-plot(kuka, q);
+% plot(kuka, q);
 hold off;
 
 %% prelab: motion planning with obstacles (part 2)
@@ -76,7 +78,7 @@ view(-0.32, 0.5)
 plotobstacle(obs);
 t = linspace(0, 10, 300);
 q = ppval(qref, t)';
-plot(kuka, q);
+% plot(kuka, q);
 hold off;
 
 %% part 4.1
@@ -87,13 +89,12 @@ p1 = [0.37 -0.44 z_grid];
 p2 = [0.75 -0.22 0.225];
 p3 = [0.62 0.35 0.225];
 
-
 %% rrt planning
 
 lb = [0 -pi/2   0    0  0    -pi/2];
 ub = [pi/2 pi/2 2*pi pi 2*pi  pi/2];
-[q_path, q_err, tree] = rrt(q1, q2, kuka, prepobs, 0.05, 100000, 0.5, lb, ub, 5e-2);
-
+[q_path, q_err, tree] = rrt(q1, q2, kuka, prepobs, 0.1, 20000, 0.1, lb, ub, 5e-2);
+%%
 % visualize results
 figure;
 hold on;
