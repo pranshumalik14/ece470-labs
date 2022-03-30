@@ -29,6 +29,9 @@ randidx = 1;
 
 % initialize tree
 tree = [struct('pos', q_start, 'parent', [])];
+spose = forward(q_start', mykuka);
+start = spose(1:3,4);
+xtree = [start];
 
 % grow/extend tree towards q_goal or q_rand at each iteration while we have
 % not reached the goal
@@ -42,10 +45,9 @@ for i = 1:n_iter
     end
 
     % extend tree towards x_rand to get x_new
-    nn_node = nearest(x_rand, tree, mykuka);
+    [nn_node, nn_idx] = nearest(x_rand);
     q_near  = nn_node.pos;
-    x_near  = forward(q_near', mykuka);
-    x_near  = x_near(1:3,4);
+    x_near  = xtree(:,nn_idx);
     x_new   = x_near + delta_x*(x_rand - x_near)/norm(x_rand - x_near);
     
     % get q_new from x_new
@@ -59,7 +61,9 @@ for i = 1:n_iter
     else
         % add q_new to tree
         tree = [tree struct('pos', q_new, 'parent', nn_node)];
-
+        npose = forward(q_new', mykuka);
+        xtree = [xtree npose(1:3,4)];
+        
         % check if we have reached the goal: if so, break out of search
         if norm(wrapTo2Pi(q_new(1:5)) - wrapTo2Pi(q_goal(1:5))) < tol
             break;
@@ -72,7 +76,7 @@ endpose = forward(tree(end).pos', mykuka);
 if norm(endpose(1:3,4) - x_goal) < tol
     n_curr = tree(end);
 else
-    n_curr = nearest(x_goal, tree, mykuka);
+    n_curr = nearest(x_goal);
 end
 
 q_path = [n_curr.pos];
@@ -145,16 +149,17 @@ end
 
 % returns the nearest neighbor node in tree to x_rand
 % naive implementation: traverse through the entire tree
-function nn_near = nearest(x_rand, tree, mykuka)
-    nn_near = tree(1);
-    min_dist  = Inf;
+function [nn_near, nn_idx] = nearest(x_rand)
+    nn_near  = tree(1);
+    nn_idx   = 1;
+    min_dist = Inf;
 
-    for node_idx = 1:size(tree, 2)
-        curr_pose = forward(tree(node_idx).pos', mykuka);
-        curr_dist = norm(curr_pose(1:3,4) - x_rand);
+    for node_idx = 1:size(xtree, 2)
+        curr_dist = norm(xtree(node_idx) - x_rand);
         if curr_dist < min_dist
             min_dist = curr_dist;
-            nn_near = tree(node_idx);
+            nn_near  = tree(node_idx);
+            nn_idx   = node_idx;
         end
     end
 end

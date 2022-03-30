@@ -22,7 +22,10 @@ q_rands = rand(n_iter, n).*(ub-lb) + lb;
 randidx = 1;
 
 % initialize tree
-tree = [struct('pos', q_start, 'parent', [])];
+tree  = [struct('pos', q_start, 'parent', [])];
+spose = forward(q_start', mykuka);
+start = spose(1:3,4);
+xtree = [start];
 
 % grow/extend tree towards q_goal or q_rand at each iteration while we have
 % not reached the goal
@@ -36,7 +39,7 @@ for i = 1:n_iter
     end
 
     % extend tree towards q_rand
-    nn_node = nearest(q_rand, tree);
+    nn_node = nearest(q_rand);
     q_near  = nn_node.pos;
     q_new   = q_near + delta_q*(q_rand - q_near)/norm(q_rand - q_near);
     
@@ -46,7 +49,9 @@ for i = 1:n_iter
         continue % skip this iteration as q_new is in collision
     else
         % add q_new to tree
-        tree = [tree struct('pos', q_new, 'parent', nn_node)];
+        tree  = [tree struct('pos', q_new, 'parent', nn_node)];
+        npose = forward(q_new', mykuka);
+        xtree = [xtree npose(1:3,4)];
 
         % check if we have reached the goal: if so, break out of search
         if norm(wrapTo2Pi(q_new(1:5)) - wrapTo2Pi(q_goal(1:5))) < tol
@@ -59,7 +64,7 @@ end
 if norm(wrapTo2Pi(tree(end).pos(1:5)) - wrapTo2Pi(q_goal(1:5))) < tol
     n_curr = tree(end);
 else
-    n_curr = nearest(q_goal, tree);
+    n_curr = nearest(q_goal);
 end
 
 q_path = [n_curr.pos];
@@ -129,16 +134,19 @@ function colliding = insideobs(link, obs, padding)
     colliding = false;
 end
 
-% returns the nearest neighbor node in tree to q_rand
+% returns the nearest neighbor node in xtree to q_rand
 % naive implementation: traverse through the entire tree
-function nn_near = nearest(q_rand, tree)
-    nn_near = tree(1);
-    min_dist  = Inf;
-
-    for node_idx = 1:size(tree, 2)
-        if norm(tree(node_idx).pos - q_rand) < min_dist
-            min_dist = norm(tree(node_idx).pos - q_rand);
-            nn_near = tree(node_idx);
+function nn_near = nearest(q_rand)
+    nn_near  = tree(1);
+    min_dist = Inf;
+    randpose = forward(q_rand', mykuka);
+    x_rand   = randpose(1:3,4);
+    
+    for node_idx = 1:size(xtree, 2)
+        curr_dist = norm(xtree(:,node_idx) - x_rand);
+        if curr_dist < min_dist
+            min_dist = curr_dist;
+            nn_near  = tree(node_idx);
         end
     end
 end
