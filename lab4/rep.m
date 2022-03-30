@@ -28,8 +28,7 @@ function diff_oipi = obs_surf_dist(oi, obs)
     if obs.type == "cyl"
         % special case: directly above cylinder
         if oi(3) > obs.h && norm(oi(1:2) - obs.c) < obs.R
-            rim_pi    = [obs.c + obs.R*oi(1:2)/norm(oi(1:2)); obs.h];
-            diff_oipi = oi - rim_pi;
+            diff_oipi = [0; 0; oi(3) - obs.h]; % treat as plane
             return;
         else
             oiz = oi(3);

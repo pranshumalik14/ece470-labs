@@ -11,7 +11,7 @@ obs{2}.h = 0.572;
 obs{2}.type = 'cyl';
 % Obstacle 3: Cylinder
 obs{3}.R = 0.1;
-obs{3}.c = [0.62;-0.44];
+obs{3}.c = [0.62;-0.64];
 obs{3}.rho0 = 0.15;
 obs{3}.h = 0.572;
 obs{3}.type = 'cyl';
