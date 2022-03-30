@@ -87,23 +87,50 @@ p1 = [0.37 -0.44 z_grid];
 p2 = [0.75 -0.22 0.225];
 p3 = [0.62 0.35 0.225];
 
-%% rrt planning: should probably do in workspace coordinates
+%% rrt planning in joint space
 
 lb  = [0 -pi/2   0    0  0    -pi/2];
 ub  = [pi/2 pi/2 2*pi pi 2*pi  pi/2];
-tol = 5e-2;
-[q_path, q_err, tree] = rrt(q1, q2, kuka, prepobs, 0.03, 10000, 0.5, lb, ub, tol);
+qtol = 5e-2;
+[q_path, q_err, tree] = ...
+    rrt_qspace(q1, q2, kuka, prepobs, 0.03, 10000, 0.5, lb, ub, qtol);
 
 % visualize
-fig = figure;
+figure;
 hold on;
 axis([-1 1 -1 1 0 1])
 view(-0.32, 0.5)
 plotobstacle(prepobs);    
-if q_err > tol
+if q_err > qtol
     % visualize exploration tree
     for i = 1:fix(size(tree,2)/100):size(tree,2)
         plot(kuka, tree(i).pos);
+    end
+else
+    % visualize result path
+    plot(kuka, q_path);
+end
+hold off;
+close;
+
+%% rrt planning in workspace
+
+xlb  = [0; 0; 0];
+xub  = [1; 1; 1];
+xtol = 1e-2;
+[xsearch_q_path, x_err, xsearch_tree] = ...
+    rrt_xspace(q1, q2, kuka, {prepobs{1}}, 0.05, 500, 0.5, xlb, xub, xtol);
+
+% visualize
+figure;
+hold on;
+axis([-1 1 -1 1 0 1])
+view(-0.32, 0.5)
+plotobstacle(prepobs);
+if x_err > xtol
+    % visualize exploration tree
+    for i = 1:fix(size(xsearch_tree,2)/100):size(xsearch_tree,2)
+        plot(kuka, xsearch_q_path);
     end
 else
     % visualize result path
