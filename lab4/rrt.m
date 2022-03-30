@@ -75,7 +75,7 @@ q_err  = norm(wrapTo2Pi(q_path(end, 1:5)) - wrapTo2Pi(q_goal(1:5)));
 % checks if links are colliding with obstacles for the given jointvals, q
 function colliding = collision(q, obs)
     % default padding on top of obstacle size
-    padding = 0.15;
+    padding = 0.08;
     
     % compute the current joint poses and distance from obstacle surface
     % start from robot base frame: default world frame
@@ -108,11 +108,21 @@ end
 function colliding = insideobs(link, obs, padding)
     for pos = link.start + linspace(0,1,10).*(link.end-link.start)
         if obs.type == "sph"
-            %
+            if norm(pos-obs.c) < (obs.R + padding)
+                colliding = true;
+                return;
+            end
         elseif obs.type == "cyl"
-            %
-        elseif obs.type == "pla"
-            %
+            if norm(pos(1:2)-obs.c) < (obs.R + padding) && ...
+               pos(3) < (obs.h + padding) 
+                colliding = true;
+                return;
+            end
+        elseif obs.type == "pla" && all(pos ~= zeros(3,1)) % skip base check
+            if pos(3) < obs.h % no padding for plane
+                colliding = true;
+                return;
+            end
         end
     end
     colliding = false;
