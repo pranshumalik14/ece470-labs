@@ -50,7 +50,8 @@ H2 = [R p2'; zeros(1,3) 1];
 q1 = inverse(H1, kuka);
 q2 = inverse(H2, kuka);
 
-qref = motionplan(q1, q2, 0, 10, kuka_forces, prepobs, 1e-2, 1.0, 5000);
+qref = motionplan(q1, q2, 0, 10, kuka_forces, prepobs, 1e-2, 1.0, 5000, ...
+    0.013, 0.01);
 
 % visualize results
 figure;
@@ -66,7 +67,9 @@ hold off;
 %% prelab: motion planning with obstacles (part 2)
 
 setupobstacle;
-qref = motionplan(q1, q2, 0, 10, kuka_forces, obs, 1e-2, 3.5, 15000);
+obs{3}.c = [0.62;-0.640];
+qref = motionplan(q1, q2, 0, 10, kuka_forces, obs, 1e-2, 3.5, 15000, ...
+    0.013, 0.01);
 
 % visualize results
 figure;
@@ -80,6 +83,9 @@ plot(kuka, q);
 hold off;
 
 %% part 4.1
+
+setupobstacle;
+
 z_grid = 0.045;
 p0 = [0.37 -0.44 0.15];
 p1 = [0.37 -0.44 z_grid];
@@ -97,15 +103,18 @@ q1 = inverse(H1, kuka);
 q2 = inverse(H2, kuka);
 q3 = inverse(H3, kuka);
 
-qref = motionplan(q0, q1, 0, 10, kuka_forces, obs, 3e-2, 0.2, 1000, 0.03);
+qref = motionplan(q0, q1, 0, 10, kuka_forces, obs, 3e-2, 0.2, 1000, ...
+    0.03, 0.01);
 t = linspace(0, 10, 300);
 q1_follow = ppval(qref, t)';
 
-qref = motionplan(q1_follow(end, :), q2, 10, 20, kuka_forces, obs, 3e-2, 0.5, 1000, 0.01);
+qref = motionplan(q1_follow(end, :), q2, 10, 20, kuka_forces, obs, 3e-2, ...
+    0.5, 1000, 0.01, 0.01);
 t = linspace(10, 20, 300);
 q2_follow = ppval(qref, t)';
 
-qref = motionplan(q2_follow(end, :), q3, 20, 30, kuka_forces, obs, 3e-2, 1, 5000, 0.01);
+qref = motionplan(q2_follow(end, :), q3, 20, 30, kuka_forces, obs, 3e-2, ...
+    1, 5000, 0.01, 0.01);
 t = linspace(20, 30, 300);
 q3_follow = ppval(qref, t)';
 
@@ -123,9 +132,10 @@ plot(kuka, q2_follow);
 plot(kuka, q3_follow);
 hold off;
 
-%% Follow commands on real robot
-% Find physical position for the obstacle
-% Obs 1
+%% follow commands on real robot
+
+% find physical position for the obstacle
+% obs 1
 cylinder_1_pose = [obs{2}.c; 0.1];
 cylinder_2_pose = [obs{3}.c; 0.1];
 
@@ -135,7 +145,6 @@ H_cyn_2 = [R cylinder_2_pose; zeros(1,3) 1];
 
 q_cyn_1 = inverse(H_cyn_1, kuka);
 q_cyn_2 = inverse(H_cyn_2, kuka);
-
 
 max_vel = 0.04;
 min_vel = 0.02;
@@ -161,7 +170,8 @@ end
 
 setGripper(0);
 setHome(max_vel);
-%% rrt planning in joint space
+
+%% rrt in joint space (refer to video recorded)
 
 lb  = [0 -pi/2   0    0  0    -pi/2];
 ub  = [pi/2 pi/2 2*pi pi 2*pi  pi/2];
@@ -175,7 +185,7 @@ hold on;
 axis([-1 1 -1 1 0 1])
 view(-0.32, 0.5)
 plotobstacle(prepobs);
-if q_err > tol
+if q_err > qtol
     % visualize exploration tree
     for i = 1:fix(size(tree,2)/100):size(tree,2)
         plot(kuka, tree(i).pos);
@@ -186,6 +196,39 @@ else
 end
 hold off;
 close;
+
+%% rrt planning in joint space (sim: for the prelab)
+
+p1 = [0.620  0.375 0.050];
+p2 = [0.620 -0.375 0.050];
+R  = [0 0 1; 0 -1 0;1 0 0];
+H1 = [R p1'; zeros(1,3) 1];
+H2 = [R p2'; zeros(1,3) 1];
+q1 = inverse(H1, kuka);
+q2 = inverse(H2, kuka);
+
+lb  = [0 -pi/2   0    0  0    -pi/2];
+ub  = [pi/2 pi/2 2*pi pi 2*pi  pi/2];
+qtol = 5e-2;
+[q_path, q_err, tree] = ...
+    rrt_qspace(q1, q2, kuka, prepobs, 0.03, 1000, 0.5, lb, ub, qtol);
+
+% visualize
+figure;
+hold on;
+axis([-1 1 -1 1 0 1])
+view(-0.32, 0.5)
+plotobstacle(prepobs);
+if q_err > qtol
+    % visualize exploration tree
+    for i = 1:fix(size(tree,2)/100):size(tree,2)
+        plot(kuka, tree(i).pos);
+    end
+else
+    % visualize result path
+    plot(kuka, q_path);
+end
+hold off;
 
 %% rrt planning in workspace (slow convergence)
 

@@ -1,9 +1,13 @@
 % runs gradient descent while end-effector reaches goal within a tolerance
-function qref = motionplan(qs, qdes, t1, t2, myrobot, obs, tol, eta, N, alpha_att)
+function qref = motionplan( ...
+    qs, qdes, t1, t2, ...
+    myrobot, obs, tol, eta, N, ...
+    alpha_att, alpha_rep ...
+    )
 
 % define hyperparameters
-% alpha_att = 0.01; % ~ step size along attractive potential gradient
-alpha_rep = 0.01;  % ~ step size along repulsive potential gradient
+% alpha_att = 0.013; % ~ step size along attractive potential gradient
+% alpha_rep = 0.01;  % ~ step size along repulsive potential gradient
 
 % perform gradient descent over environment with obstacles
 q       = zeros(1,6);
