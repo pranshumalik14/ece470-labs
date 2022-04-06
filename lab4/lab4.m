@@ -93,7 +93,7 @@ lb  = [0 -pi/2   0    0  0    -pi/2];
 ub  = [pi/2 pi/2 2*pi pi 2*pi  pi/2];
 qtol = 5e-2;
 [q_path, q_err, tree] = ...
-    rrt_qspace(q1, q2, kuka, {prepobs{1}}, 0.03, 1000, 0.5, lb, ub, qtol);
+    rrt_qspace(q1, q2, kuka, prepobs, 0.03, 1000, 0.5, lb, ub, qtol);
 
 % visualize
 figure;
@@ -113,32 +113,32 @@ end
 hold off;
 close;
 
-%% rrt planning in workspace
+%% rrt planning in workspace (slow convergence)
 
-xlb  = [0; 0; 0];
-xub  = [1; 1; 1];
-xtol = 5e-2;
-[xsearch_q_path, x_err, xsearch_tree] = ...
-    rrt_xspace(q1, q2, kuka, {prepobs{1}}, 0.05, 1000, 0.5, xlb, xub, xtol);
-
-% visualize result path
-figure;
-hold on;
-axis([-1 1 -1 1 0 1])
-view(-0.32, 0.5)
-plotobstacle(prepobs);
-plot(kuka, xsearch_q_path);
-hold off;
-
-% visualize exploration tree
-if x_err > xtol
-    figure;
-    hold on;
-    axis([-1 1 -1 1 0 1])
-    view(-0.32, 0.5)
-    plotobstacle(prepobs);
-    for i = 1:fix(size(xsearch_tree,2)/10):size(xsearch_tree,2)
-        plot(kuka, xsearch_tree(i).pos);
-    end
-    hold off;
-end
+% xlb  = [0; 0; 0];
+% xub  = [1; 1; 1];
+% xtol = 5e-2;
+% [xsearch_q_path, x_err, xsearch_tree] = ...
+%     rrt_xspace(q1, q2, kuka, prepobs, 0.05, 5000, 0.5, xlb, xub, xtol);
+% 
+% % visualize result path
+% figure;
+% hold on;
+% axis([-1 1 -1 1 0 1])
+% view(-0.32, 0.5)
+% plotobstacle(prepobs);
+% plot(kuka, xsearch_q_path);
+% hold off;
+% 
+% % visualize exploration tree
+% if x_err > xtol
+%     figure;
+%     hold on;
+%     axis([-1 1 -1 1 0 1])
+%     view(-0.32, 0.5)
+%     plotobstacle(prepobs);
+%     for i = 1:fix(size(xsearch_tree,2)/10):size(xsearch_tree,2)
+%         plot(kuka, xsearch_tree(i).pos);
+%     end
+%     hold off;
+% end
