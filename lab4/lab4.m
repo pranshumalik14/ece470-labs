@@ -80,7 +80,6 @@ plot(kuka, q);
 hold off;
 
 %% part 4.1
-
 z_grid = 0.045;
 p0 = [0.37 -0.44 0.15];
 p1 = [0.37 -0.44 z_grid];
@@ -98,7 +97,6 @@ q1 = inverse(H1, kuka);
 q2 = inverse(H2, kuka);
 q3 = inverse(H3, kuka);
 
-%% 
 qref = motionplan(q0, q1, 0, 10, kuka_forces, obs, 3e-2, 0.2, 1000, 0.03);
 t = linspace(0, 10, 300);
 q1_follow = ppval(qref, t)';
@@ -111,7 +109,6 @@ qref = motionplan(q2_follow(end, :), q3, 20, 30, kuka_forces, obs, 3e-2, 1, 5000
 t = linspace(20, 30, 300);
 q3_follow = ppval(qref, t)';
 
-%%
 % visualize results
 figure;
 hold on;
@@ -127,17 +124,53 @@ plot(kuka, q3_follow);
 hold off;
 
 %% Follow commands on real robot
+% Find physical position for the obstacle
+% Obs 1
+cylinder_1_pose = [obs{2}.c; 0.1];
+cylinder_2_pose = [obs{3}.c; 0.1];
+
+R  = [0 0 1; 0 -1 0;1 0 0];
+H_cyn_1 = [R cylinder_1_pose; zeros(1,3) 1];
+H_cyn_2 = [R cylinder_2_pose; zeros(1,3) 1];
+
+q_cyn_1 = inverse(H_cyn_1, kuka);
+q_cyn_2 = inverse(H_cyn_2, kuka);
 
 
-%% rrt planning: should probably do in workspace coordinates
+max_vel = 0.04;
+min_vel = 0.02;
+
+getHome(max_vel);
+setGripper(0);
+setAngles(q0, min_vel);
+
+for t = 1:size(q1_follow, 1)
+    setAngles(q1_follow(t, :), min_vel)
+end
+
+% reached, set gripper to 1
+setGripper(1);
+
+for t = 1:size(q2_follow, 1)
+    setAngles(q2_follow(t, :), min_vel);
+end
+
+for t = 1:size(q3_follow, 1)
+    setAngles(q3_follow(t, :), min_vel);
+end
+
+setGripper(0);
+setHome(max_vel);
+%% rrt planning in joint space
 
 lb  = [0 -pi/2   0    0  0    -pi/2];
 ub  = [pi/2 pi/2 2*pi pi 2*pi  pi/2];
-tol = 5e-2;
-[q_path, q_err, tree] = rrt(q1, q2, kuka, {prepobs{3}}, 0.03, 10000, 0.5, lb, ub, tol);
+qtol = 5e-2;
+[q_path, q_err, tree] = ...
+    rrt_qspace(q1, q2, kuka, prepobs, 0.03, 1000, 0.5, lb, ub, qtol);
 
 % visualize
-fig = figure;
+figure;
 hold on;
 axis([-1 1 -1 1 0 1])
 view(-0.32, 0.5)
@@ -153,3 +186,33 @@ else
 end
 hold off;
 close;
+
+%% rrt planning in workspace (slow convergence)
+
+% xlb  = [0; 0; 0];
+% xub  = [1; 1; 1];
+% xtol = 5e-2;
+% [xsearch_q_path, x_err, xsearch_tree] = ...
+%     rrt_xspace(q1, q2, kuka, prepobs, 0.05, 5000, 0.5, xlb, xub, xtol);
+% 
+% % visualize result path
+% figure;
+% hold on;
+% axis([-1 1 -1 1 0 1])
+% view(-0.32, 0.5)
+% plotobstacle(prepobs);
+% plot(kuka, xsearch_q_path);
+% hold off;
+% 
+% % visualize exploration tree
+% if x_err > xtol
+%     figure;
+%     hold on;
+%     axis([-1 1 -1 1 0 1])
+%     view(-0.32, 0.5)
+%     plotobstacle(prepobs);
+%     for i = 1:fix(size(xsearch_tree,2)/10):size(xsearch_tree,2)
+%         plot(kuka, xsearch_tree(i).pos);
+%     end
+%     hold off;
+% end
